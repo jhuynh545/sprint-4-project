@@ -7,19 +7,27 @@ vehicles = pd.read_csv('vehicles_us.csv')
 vehicles_filled = vehicles.copy()
 #creating a copy of the orginal dataframe
 
-#fill model year with median
-vehicles_filled['model_year'].fillna(vehicles_filled['model_year'].median(), inplace=True)
+# Handling missing values
+vehicles.dropna(inplace=True)  # Or use other methods like filling missing values
 
-#fill cylinders with mode 
-vehicles_filled['cylinders'].fillna(vehicles_filled['cylinders'].mode()[0], inplace=True)
+# Renaming columns for better readability
+vehicles.rename(columns={'column_name': 'new_name'}, inplace=True)
 
-#fill odometer with median
-vehicles_filled['odometer'].fillna(vehicles_filled['odometer'].median(), inplace=True)
+# Converting data types if necessary
+vehicles['price'] = vehicles['price'].astype(float)
 
-#fill is_4wd with mode
-vehicles_filled['is_4wd'].fillna(vehicles_filled['is_4wd'].mode()[0], inplace=True)
+# Display the cleaned data
+vehicles.head()
 
-#check to make sure there are no more missing values in columns (vehicles_filled[['model_year', 'cylinders', 'odometer', 'is_4wd']].isna().sum())
+# Filling missing values
+# Fill missing 'model_year' values by the median year for each model
+vehicles['model_year'] = vehicles.groupby('model')['model_year'].transform(lambda x: x.fillna(x.median()))
+
+# Fill missing 'cylinders' values by the median cylinders for each model
+vehicles['cylinders'] = vehicles.groupby('model')['cylinders'].transform(lambda x: x.fillna(x.median()))
+
+# Fill missing 'odometer' values by the median odometer for each model year
+vehicles['odometer'] = vehicles.groupby(['model_year', 'model'])['odometer'].transform(lambda x: x.fillna(x.mean()))
 
 st.header('Vehicles Distribution')
 
@@ -27,12 +35,12 @@ show_data = st.checkbox("Show Data")
 if show_data: 
     st.write(vehicles.head())
 
+
 #histogram for price distribution
-fig = px.histogram(vehicles, x='price', title='Vehicle Price Distribution')
+fig = px.histogram(vehicles, x='price', title='Distribution of Car Prices', labels={'x':'Price'})
 st.plotly_chart(fig)
+
 
 #scatterplot between price and odometer
-fig = px.scatter(vehicles, x='odometer', y='price', color='condition',
-                 title='Price vs Odometer by Vehicle Condition')
+fig = px.scatter(vehicles, x='odometer', y='price', title='Price vs Mileage', labels={'x':'Odometer Reading', 'y':'Price'})
 st.plotly_chart(fig)
-
